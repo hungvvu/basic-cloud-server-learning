@@ -70,6 +70,7 @@ class Student(Resource):
         db.session.commit()
         return student, 201
     
+    @marshal_with(resource_fields)
     def patch(self, studentID):
         args = student_update_args.parse_args()
 
@@ -84,10 +85,23 @@ class Student(Resource):
             result.age = args['age']
 
         db.session.commit()
-    
-    # def delete(self, studentID):
-    #     abort_if_non_existing_student(studentID)
-    #     del students[studentID]
+
+        return result, 201
+
+    @marshal_with(resource_fields)    
+    def delete(self, studentID):
+        # check whether the student ID exist or not
+        result = StudentModel.query.filter_by(id=studentID).first()
+        if not result:
+            abort(404, message='Student ID not found')
+
+        # delete the student
+        session = db.session()
+        session.delete(result)
+        session.commit()
+
+        return result, 201
+
     
     # def post(self):
     #     return {'data':'Posted'}
