@@ -25,8 +25,8 @@ student_put_args.add_argument('age', type=str, help='Age not specified', require
 
 # argument parser for update
 student_update_args = reqparse.RequestParser()
-student_put_args.add_argument('name', type=str, help='Name not specified', required=False)
-student_put_args.add_argument('age', type=str, help='Age not specified', required=False)
+student_update_args.add_argument('name', type=str, help='Name not specified', required=False)
+student_update_args.add_argument('age', type=str, help='Age not specified', required=False)
 
 
 # def abort_if_non_existing_student(studentID):
@@ -70,7 +70,7 @@ class Student(Resource):
         db.session.commit()
         return student, 201
     
-    def update(self, studentID):
+    def patch(self, studentID):
         args = student_update_args.parse_args()
 
         # check whether the student ID exist or not
@@ -78,13 +78,11 @@ class Student(Resource):
         if not result:
             abort(404, message='Student ID not found')
         
-        for a in args:
-            if 'name' in args:
-                result.name = args['name']
-            if 'age' in args:
-                result.age = args['age']
+        if args['name']:
+            result.name = args['name']
+        if args['age']:
+            result.age = args['age']
 
-        db.session.add(result)
         db.session.commit()
     
     # def delete(self, studentID):
