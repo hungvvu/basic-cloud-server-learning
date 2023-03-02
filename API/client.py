@@ -20,7 +20,8 @@ while not stop:
     # print out user prompt
     print('Options:\n1. GET\
                     \n2. PUT\
-                    \n3. EXIT')
+                    \n3. DELETE\
+                    \n4. EXIT')
     option = input()
     match option:
         case '1':
@@ -39,6 +40,10 @@ while not stop:
                                     {'name':name,'age':age})
             print(response.json())
         case '3':
+            print('Enter student ID: ', end='')
+            id = input()
+            response = requests.delete(BASE + 'student/' + id)
+        case '4':
             stop = True
         case _:
             print('Invalid choice')
