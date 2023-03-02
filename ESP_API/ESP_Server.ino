@@ -1,67 +1,59 @@
-#include <Arduino.h>
-#ifdef ESP32
 #include <WiFi.h>
-#include <AsyncTCP.h>
-#elif defined(ESP8266)
-#include <ESP8266WiFi.h>
-#include <ESPAsyncTCP.h>
-#endif
-#include <ESPAsyncWebSrv.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+#include <time.h>
+#include <string.h>
 
-AsyncWebServer server(80);
-
-const char* ssid = "aalto open";
-const char* password = "";
-
-const char* PARAM_MESSAGE = "message";
-
-void notFound(AsyncWebServerRequest *request) {
-    request->send(404, "text/plain", "Not found");
-}
+unsigned long previousMillis = 0;
+const long interval = 10000;
 
 void setup() {
-
-    Serial.begin(115200);
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
-    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-        Serial.printf("WiFi Failed!\n");
-        return;
-    }
-
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
-
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(200, "text/plain", "Hello, world");
-    });
-
-    // Send a GET request to <IP>/get?message=<message>
-    server.on("/get", HTTP_GET, [] (AsyncWebServerRequest *request) {
-        String message;
-        if (request->hasParam(PARAM_MESSAGE)) {
-            message = request->getParam(PARAM_MESSAGE)->value();
-        } else {
-            message = "No message sent";
-        }
-        request->send(200, "text/plain", "Hello, GET: " + message);
-    });
-
-    // Send a POST request to <IP>/post with a form field message set to <message>
-    server.on("/post", HTTP_POST, [](AsyncWebServerRequest *request) {
-        String message;
-        if (request->hasParam(PARAM_MESSAGE, true)) {
-            message = request->getParam(PARAM_MESSAGE, true)->value();
-        } else {
-            message = "No message sent";
-        }
-        request->send(200, "text/plain", "Hello, POST: " + message);
-    });
-
-    server.onNotFound(notFound);
-
-    server.begin();
+  Serial.begin(115200);
+  WiFi.begin("aalto open", "");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
+  }
+  Serial.println("Connected to WiFi");
 }
 
 void loop() {
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+
+    // Create a JSON payload with the temperature and humidity values
+    StaticJsonDocument<128> jsonPayload;
+    jsonPayload["temp"] = 25;
+    jsonPayload["humid"] = 50;
+
+    // Serialize the JSON payload to a string
+    String payloadString;
+    serializeJson(jsonPayload, payloadString);
+
+    char address[100] = "http://10.100.41.65:5000/sensordata/";
+    char timeStr[20];
+    time_t now = time(nullptr);
+    struct tm* timeinfo = localtime(&now);
+    strftime(timeStr, sizeof(address), "%Y_%m_%d_%H_%M_%S", timeinfo);
+    
+    strcat(address, timeStr);
+    HTTPClient http;
+    http.begin(address);
+
+    // Set the content type header to JSON
+    http.addHeader("Content-Type", "application/json");
+
+    // Send the PUT request with the JSON payload
+    int httpResponseCode = http.PUT(payloadString);
+    if (httpResponseCode > 0) {
+      String response = http.getString();
+      Serial.println(response);
+    } else {
+      String response = http.getString();
+      Serial.print("Error sending request: ");
+      Serial.println(httpResponseCode);
+    }
+    http.end();
+  }
 }

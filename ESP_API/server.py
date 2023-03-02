@@ -2,6 +2,7 @@ from flask import Flask
 from flask_restful import Api, Resource, reqparse, abort, marshal_with, fields
 from flask_sqlalchemy import SQLAlchemy
 
+
 app = Flask(__name__)
 api = Api(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sensor_data.db'
@@ -20,7 +21,6 @@ db.create_all()
 
 # argument parser for put
 sensor_put_args = reqparse.RequestParser()
-sensor_put_args.add_argument('time', type=str, help='Time not specified', required=True)
 sensor_put_args.add_argument('temp', type=str, help='Temperature not specified', required=True)
 sensor_put_args.add_argument('humid', type=str, help='Humidity not specified', required=True)
 
@@ -56,6 +56,7 @@ class SensorData(Resource):
         data = SensorDataModel(timestamp=time, temperature=args['temp'], humidity=args['humid'])
         db.session.add(data)
         db.session.commit()
+        print('received request')
         return data, 201
     
     # @marshal_with(resource_fields)
@@ -94,7 +95,8 @@ class SensorData(Resource):
     # def post(self):
     #     return {'data':'Posted'}
  
-api.add_resource(SensorData, "/sensordata/<int:time>")
+api.add_resource(SensorData, "/sensordata/<string:time>")
+
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')
