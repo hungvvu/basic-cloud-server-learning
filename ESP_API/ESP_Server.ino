@@ -15,6 +15,7 @@ void setup() {
     Serial.println("Connecting to WiFi...");
   }
   Serial.println("Connected to WiFi");
+  configTime(0, 0, "pool.ntp.org");
 }
 
 void loop() {
