@@ -3,10 +3,10 @@
 
 1. Learn to receive and store sensor data from the device
 
-	1.1. The cloud system must provide a way to submit sensor data
+	1.1. The cloud system must provide a way to submit sensor data :heavy_check_mark:
 2. Learn to design an effective database
 
-    2.1. The database should uphold standard designing principles and practices, such as BCNF
+    2.1. The database should uphold standard designing principles and practices, such as BCNF :heavy_check_mark:
 3. Learn to send data as requested from the database to the app
 
 	3.1. The system must have a way for the app to request data  
