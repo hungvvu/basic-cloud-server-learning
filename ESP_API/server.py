@@ -28,7 +28,7 @@ sensor_put_args.add_argument('humid', type=str, help='Humidity not specified', r
 # fields for serialization
 resource_fields = {
     'timestamp': fields.String,
-    'temperature': fields.String,
+    'temperature': fields.Integer,
     'humidity':fields.Integer
 }
 
@@ -39,6 +39,7 @@ class SensorData(Resource):
     def get(self, time):
         # query and return the data
         result = SensorDataModel.query.filter_by(timestamp=time).first()
+        print("Received GET request for timestamp " + time)
         if not result:
             abort(404, message="Timestamp not found")
         return result
@@ -49,6 +50,8 @@ class SensorData(Resource):
         
         # check whether the student ID is taken or not
         result = SensorDataModel.query.filter_by(timestamp=time).first()
+        print("Received PUT request for timestamp " + time + " with arguments: " + "{temp:" + args['temp'] + ",humid:" \
+              + args['humid'] + '}')
         if result:
             abort(409, message='Timestamp already exist.')
 
@@ -99,4 +102,4 @@ api.add_resource(SensorData, "/sensordata/<string:time>")
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0')
+    app.run()
